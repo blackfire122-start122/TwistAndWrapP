@@ -112,7 +112,7 @@ func (c *CheckoutPage) SetWindowContent() {
 	findEntry := widget.NewEntry()
 	findEntry.OnChanged = func(s string) {
 		for _, checkbox := range productCheckboxes {
-			if strings.Contains(checkbox.Text, s) {
+			if strings.Contains(strings.ToLower(checkbox.Text), strings.ToLower(s)) {
 				checkbox.Show()
 			} else {
 				checkbox.Hide()

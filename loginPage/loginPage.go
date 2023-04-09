@@ -24,7 +24,7 @@ func FirstCallLoginPage(MainWindow fyne.Window) {
 		panic(err)
 	}
 
-	client := &http.Client{
+	Client = &http.Client{
 		Jar: jar,
 	}
 
@@ -62,7 +62,7 @@ func FirstCallLoginPage(MainWindow fyne.Window) {
 
 		req.Header.Set("Content-Type", "application/json")
 
-		resp, err := client.Do(req)
+		resp, err := Client.Do(req)
 		if err != nil {
 			fmt.Println("Error sending HTTP request:", err)
 			return
@@ -77,6 +77,7 @@ func FirstCallLoginPage(MainWindow fyne.Window) {
 		}
 
 		if data.Login == "OK" {
+			GetAndSetAllData()
 			SettingPage(MainWindow)
 		} else {
 			errorLabel.Show()
@@ -92,8 +93,6 @@ func FirstCallLoginPage(MainWindow fyne.Window) {
 		submitButton,
 		errorLabel,
 	)
-
-	GetAndSetAllData()
 
 	MainWindow.SetTitle("Login Page")
 	MainWindow.SetContent(loginPage)
@@ -123,3 +122,6 @@ func GetJson(url string, target any) {
 		return
 	}
 }
+
+//66775588
+//123456

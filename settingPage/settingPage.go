@@ -31,8 +31,8 @@ func SettingPage(MainWindow fyne.Window) {
 	for _, c := range CheckListProducts {
 		items = append(items, c)
 	}
-
-	ProductCheckList := container.NewVBox(items...)
+	productLabel := widget.NewLabel("Select products what yours have: ")
+	ProductCheckList := container.NewHScroll(container.NewHBox(items...))
 
 	newContent := container.New(layout.NewVBoxLayout(),
 		widget.NewLabel("Setting Profile"),
@@ -40,11 +40,11 @@ func SettingPage(MainWindow fyne.Window) {
 		numberInfoEntry,
 		numberCheckoutEntry,
 		numberWorkEntry,
+		productLabel,
 		ProductCheckList,
 
 		container.New(layout.NewHBoxLayout(),
 			widget.NewButton("Logout", func() {
-				// send request logout
 				LoginPage(MainWindow)
 			}),
 			widget.NewButton("Apply", func() {
