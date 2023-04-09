@@ -1,6 +1,7 @@
 package workedPage
 
 import (
+	. "TwistAndWrapP/informationPage"
 	. "TwistAndWrapP/pkg"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
@@ -78,11 +79,9 @@ func (w *WorkedPage) CreateOrderItem(o Order) *fyne.Container {
 
 	selectList := widget.NewSelect(statuses, func(s string) {
 		if s == "end" {
-			for i, v := range OrderListId {
-				if v == o.Id {
-					OrderListId = append(OrderListId[:i], OrderListId[i+1:]...)
-					break
-				}
+			for _, page := range ListInformationPage {
+				page.SetStatusCompleteOrder(o.Id)
+				page.Window().Content().Refresh()
 			}
 			w.ListWork.Remove(item)
 		}
