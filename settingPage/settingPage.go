@@ -48,9 +48,25 @@ func SettingPage(MainWindow fyne.Window) {
 				LoginPage(MainWindow)
 			}),
 			widget.NewButton("Apply", func() {
-				CreateWindows(numberInfoEntry, "Information Page", &InformationPageList, InformationPage)
-				CreateWindows(numberCheckoutEntry, "Checkout Page", &CheckoutPageList, CheckoutPage)
-				CreateWindows(numberWorkEntry, "Worked Page", &WorkedPageList, WorkedPage)
+				for _, item := range ListWorkedPage {
+					item.Window().Close()
+				}
+
+				for _, item := range ListInformationPage {
+					item.Window().Close()
+				}
+
+				for _, item := range ListCheckoutPage {
+					item.Window().Close()
+				}
+
+				ListWorkedPage = []*WorkedPage{}
+				ListInformationPage = []*InformationPage{}
+				ListCheckoutPage = []*CheckoutPage{}
+
+				CreateWindows(numberInfoEntry, "Information Page", NewInformationPage)
+				CreateWindows(numberCheckoutEntry, "Checkout Page", NewCheckoutPage)
+				CreateWindows(numberWorkEntry, "Worked Page", NewWorkedPage)
 			}),
 		),
 	)
@@ -58,20 +74,11 @@ func SettingPage(MainWindow fyne.Window) {
 	MainWindow.SetContent(newContent)
 }
 
-func CreateWindows(entry *NumericalEntry, title string, pageList *[]fyne.Window, funcPage func(Window fyne.Window)) {
+func CreateWindows(entry *NumericalEntry, title string, funcCreatePage func(w fyne.Window) Page) {
 	var entryValue int64
 	entryValue, _ = strconv.ParseInt(entry.Text, 10, 64)
 
-	for _, item := range *pageList {
-		item.Close()
-	}
-
-	*pageList = []fyne.Window{}
-
 	for i := int64(0); i < entryValue; i++ {
-		*pageList = append(*pageList, App.NewWindow(title))
-
-		funcPage((*pageList)[i])
-		(*pageList)[i].Show()
+		funcCreatePage(App.NewWindow(title))
 	}
 }

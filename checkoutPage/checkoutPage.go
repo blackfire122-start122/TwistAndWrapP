@@ -2,38 +2,61 @@ package checkoutPage
 
 import (
 	. "TwistAndWrapP/pkg"
+	. "TwistAndWrapP/workedPage"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
 )
 
-func CheckoutPage(Window fyne.Window) {
+var ListCheckoutPage []*CheckoutPage
+
+func NewCheckoutPage(w fyne.Window) Page {
+	page := CheckoutPage{WindowPage: w}
+	page.SetWindowContent()
+	ListCheckoutPage = append(ListCheckoutPage, &page)
+	w.Show()
+	return page
+}
+
+type CheckoutPage struct {
+	WindowPage fyne.Window
+}
+
+func (c CheckoutPage) Window() fyne.Window {
+	return c.WindowPage
+}
+
+func (c CheckoutPage) SetWindowContent() {
 	products := GetProducts()
 	productCheckboxes := make([]*widget.Check, len(products))
 	for i, p := range products {
 		productCheckboxes[i] = widget.NewCheck(p.Name, nil)
 	}
 
-	//calculateButton := widget.NewButton("Calculate", func() {
-	//	total := 0.0
-	//	for i, p := range products {
-	//		if productCheckboxes[i].Checked {
-	//			id, _ := strconv.ParseFloat(p.Id, 64)
-	//			total += id
-	//		}
-	//	}
-	//	// Повідомляємо користувача про вартість вибраних продуктів
-	//	widget.NewLabel(fmt.Sprintf("Selected products cost $%.2f", total))
-	//})
-
-	// Створюємо контейнер зі списком вибираємих продуктів та кнопкою
 	var items []fyne.CanvasObject
 	for _, c := range productCheckboxes {
 		items = append(items, c)
 	}
 
-	content := container.NewVBox(items...)
-	//content.Add(calculateButton)
+	btnAdd := widget.NewButton("Add order", func() {
+		var productsOrder []Product
+		for i, checkbox := range productCheckboxes {
+			if checkbox.Checked {
+				productsOrder = append(productsOrder, products[i])
+			}
+		}
 
-	Window.SetContent(content)
+		for _, page := range ListWorkedPage {
+			page.Window().RequestFocus()
+			page.AddOrder(Order{Id: 0, Products: productsOrder})
+		}
+	})
+
+	productList := container.NewVBox(items...)
+	content := container.NewVBox(
+		productList,
+		btnAdd,
+	)
+
+	c.WindowPage.SetContent(content)
 }

@@ -1,13 +1,32 @@
 package informationPage
 
 import (
+	. "TwistAndWrapP/pkg"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
 )
 
-func InformationPage(Window fyne.Window) {
+var ListInformationPage []*InformationPage
+
+func NewInformationPage(w fyne.Window) Page {
+	page := InformationPage{WindowPage: w}
+	page.SetWindowContent()
+	ListInformationPage = append(ListInformationPage, &page)
+	w.Show()
+	return page
+}
+
+type InformationPage struct {
+	WindowPage fyne.Window
+}
+
+func (i InformationPage) Window() fyne.Window {
+	return i.WindowPage
+}
+
+func (i InformationPage) SetWindowContent() {
 	var productNumbersAndStatus map[string]string
 
 	var listItems []fyne.CanvasObject
@@ -25,5 +44,5 @@ func InformationPage(Window fyne.Window) {
 
 	scrollContainer := container.NewVScroll(container.NewVBox(listItems...))
 
-	Window.SetContent(scrollContainer)
+	i.WindowPage.SetContent(scrollContainer)
 }

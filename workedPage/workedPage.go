@@ -9,23 +9,31 @@ import (
 	"strconv"
 )
 
-func WorkedPage(Window fyne.Window) {
-	// test data
-	Orders = []Order{{Id: 0, Status: "need work", Products: ProductList}, {Id: 6, Status: "need work", Products: ProductList}, {Id: 89, Status: "need work", Products: ProductList}}
-	//
+var ListWorkedPage []*WorkedPage
 
-	var listItems []fyne.CanvasObject
-
-	for _, o := range Orders {
-		listItems = append(listItems, CreateOrderItem(o))
-	}
-
-	scrollContainer := container.NewVScroll(container.NewVBox(listItems...))
-
-	Window.SetContent(scrollContainer)
+func NewWorkedPage(w fyne.Window) Page {
+	page := &WorkedPage{WindowPage: w}
+	page.SetWindowContent()
+	ListWorkedPage = append(ListWorkedPage, page)
+	w.Show()
+	return page
 }
 
-func createDropdownCheckList(items []string) fyne.CanvasObject {
+type WorkedPage struct {
+	ListWork   *fyne.Container
+	WindowPage fyne.Window
+}
+
+func (w *WorkedPage) Window() fyne.Window {
+	return w.WindowPage
+}
+
+func (w *WorkedPage) SetWindowContent() {
+	w.ListWork = container.NewVBox()
+	w.WindowPage.SetContent(w.ListWork)
+}
+
+func (w *WorkedPage) createDropdownCheckList(items []string) fyne.CanvasObject {
 	checkboxes := make([]*widget.Check, len(items))
 	for i, item := range items {
 		checkboxes[i] = widget.NewCheck(item, nil)
@@ -54,26 +62,38 @@ func createDropdownCheckList(items []string) fyne.CanvasObject {
 	)
 }
 
-func CreateOrderItem(o Order) *fyne.Container {
+func (w *WorkedPage) CreateOrderItem(o Order) *fyne.Container {
 	numberLabel := widget.NewLabel(strconv.FormatUint(o.Id, 10))
 
 	var productNameList []string
+	var item *fyne.Container
 
 	for _, product := range o.Products {
 		productNameList = append(productNameList, product.Name)
 	}
 
-	dropdownCheckList := createDropdownCheckList(productNameList)
+	dropdownCheckList := w.createDropdownCheckList(productNameList)
 
 	statuses := []string{"need work", "worked", "end"}
 
-	selectList := widget.NewSelect(statuses, nil)
+	selectList := widget.NewSelect(statuses, func(s string) {
+		if s == "end" {
+			w.ListWork.Remove(item)
+		}
+	})
+
 	selectList.Selected = statuses[0]
 
-	return container.New(
+	item = container.New(
 		layout.NewHBoxLayout(),
 		numberLabel,
 		dropdownCheckList,
 		selectList,
 	)
+
+	return item
+}
+
+func (w *WorkedPage) AddOrder(o Order) {
+	w.ListWork.Add(w.CreateOrderItem(o))
 }

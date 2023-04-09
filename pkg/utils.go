@@ -6,12 +6,7 @@ import (
 	"net/http"
 )
 
-var InformationPageList []fyne.Window
-var CheckoutPageList []fyne.Window
-var WorkedPageList []fyne.Window
-
 var ProductList []Product
-var Orders []Order
 
 var CheckListProducts []*widget.Check
 
@@ -30,7 +25,6 @@ type Product struct {
 type Order struct {
 	Id       uint64
 	Products []Product
-	Status   string
 }
 
 func GetProducts() []Product {
@@ -41,4 +35,9 @@ func GetProducts() []Product {
 		}
 	}
 	return products
+}
+
+type Page interface {
+	Window() fyne.Window
+	SetWindowContent()
 }
