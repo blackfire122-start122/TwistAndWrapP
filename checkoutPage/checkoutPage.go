@@ -9,6 +9,7 @@ import (
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
 	"strconv"
+	"strings"
 )
 
 var ListCheckoutPage []*CheckoutPage
@@ -108,8 +109,20 @@ func (c *CheckoutPage) SetWindowContent() {
 
 	})
 
-	productList := container.NewVBox(items...)
+	findEntry := widget.NewEntry()
+	findEntry.OnChanged = func(s string) {
+		for _, checkbox := range productCheckboxes {
+			if strings.Contains(checkbox.Text, s) {
+				checkbox.Show()
+			} else {
+				checkbox.Hide()
+			}
+		}
+	}
+
+	productList := container.NewHBox(items...)
 	content := container.NewVBox(
+		findEntry,
 		productList,
 		btnAdd,
 		container.NewHScroll(c.OrdersList),
