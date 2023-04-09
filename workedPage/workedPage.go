@@ -85,6 +85,24 @@ func (w *WorkedPage) CreateOrderItem(o Order) *fyne.Container {
 			}
 			w.ListWork.Remove(item)
 		}
+		for _, page := range ListWorkedPage {
+			for _, work := range page.ListWork.Objects {
+				if cont, ok := work.(*fyne.Container); ok {
+					if numberLabel, ok := cont.Objects[0].(*widget.Label); ok {
+						if number, err := strconv.ParseUint(numberLabel.Text, 10, 64); err == nil && number == o.Id {
+							if selectList, ok := cont.Objects[2].(*widget.Select); ok {
+								selectList.Selected = s
+								if s == "end" {
+									page.ListWork.Remove(work)
+								}
+								page.Window().Content().Refresh()
+								break
+							}
+						}
+					}
+				}
+			}
+		}
 	})
 
 	selectList.Selected = statuses[0]
