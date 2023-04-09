@@ -78,6 +78,12 @@ func (w *WorkedPage) CreateOrderItem(o Order) *fyne.Container {
 
 	selectList := widget.NewSelect(statuses, func(s string) {
 		if s == "end" {
+			for i, v := range OrderListId {
+				if v == o.Id {
+					OrderListId = append(OrderListId[:i], OrderListId[i+1:]...)
+					break
+				}
+			}
 			w.ListWork.Remove(item)
 		}
 	})

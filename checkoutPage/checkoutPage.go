@@ -3,6 +3,7 @@ package checkoutPage
 import (
 	. "TwistAndWrapP/pkg"
 	. "TwistAndWrapP/workedPage"
+	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
@@ -48,7 +49,7 @@ func (c CheckoutPage) SetWindowContent() {
 
 		for _, page := range ListWorkedPage {
 			page.Window().RequestFocus()
-			page.AddOrder(Order{Id: 0, Products: productsOrder})
+			page.AddOrder(Order{Id: GenerateIdOrderList(), Products: productsOrder})
 		}
 	})
 
@@ -59,4 +60,24 @@ func (c CheckoutPage) SetWindowContent() {
 	)
 
 	c.WindowPage.SetContent(content)
+}
+
+// GenerateIdOrderList ToDo: Need optimize
+func GenerateIdOrderList() uint64 {
+	var id uint64 = 0
+	checkId(&id)
+
+	OrderListId = append(OrderListId, id)
+	fmt.Println("end-", id)
+
+	return id
+}
+
+func checkId(id *uint64) {
+	for _, val := range OrderListId {
+		if val == *id {
+			*id += 1
+			checkId(id)
+		}
+	}
 }

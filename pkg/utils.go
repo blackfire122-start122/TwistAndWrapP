@@ -10,6 +10,8 @@ var ProductList []Product
 
 var CheckListProducts []*widget.Check
 
+var OrderListId []uint64
+
 var App fyne.App
 
 var LoginPage func(Window fyne.Window)
