@@ -1,6 +1,7 @@
 package LoginPage
 
 import (
+	. "TwistAndWrapP/checkoutPage"
 	. "TwistAndWrapP/pkg"
 	. "TwistAndWrapP/settingPage"
 	"bytes"
@@ -12,6 +13,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 	"net/http"
 	"net/http/cookiejar"
+	"strconv"
 )
 
 func LoginPage(MainWindow fyne.Window) {
@@ -25,8 +27,6 @@ func LoginPage(MainWindow fyne.Window) {
 	Client = &http.Client{
 		Jar: jar,
 	}
-
-	//ConnectToWebsocketServer()
 
 	idEntry := widget.NewEntry()
 	passEntry := widget.NewPasswordEntry()
@@ -77,6 +77,38 @@ func LoginPage(MainWindow fyne.Window) {
 		}
 
 		if data.Login == "OK" {
+			for _, cookie := range resp.Cookies() {
+				ConnectToWebsocketServer(cookie, func(message Message) error {
+					var productsOrder []Product
+					var msgProductsId map[uint64]int64
+
+					if err := json.Unmarshal([]byte(message.Msg), &msgProductsId); err != nil {
+						fmt.Println(err)
+						return err
+					}
+
+					for _, product := range ProductList {
+						pId, err := strconv.ParseUint(product.Id, 10, 64)
+						if err != nil {
+							fmt.Println(err)
+							return err
+						}
+
+						for id, count := range msgProductsId {
+							fmt.Println(count)
+							if pId == id {
+								productsOrder = append(productsOrder, product)
+							}
+						}
+					}
+
+					for _, page := range ListCheckoutPage {
+						page.NewPostponedOrder(productsOrder)
+					}
+					return nil
+				})
+				break
+			}
 			GetAndSetAllData()
 			SettingPage(MainWindow, LoginPage)
 		} else {

@@ -24,6 +24,7 @@ type CheckoutPage struct {
 	WindowPage       fyne.Window
 	callbackAddOrder func(order Order)
 	callbackGive     func(Id uint64)
+	products         []Product
 }
 
 func (c *CheckoutPage) Window() fyne.Window {
@@ -31,9 +32,9 @@ func (c *CheckoutPage) Window() fyne.Window {
 }
 
 func (c *CheckoutPage) SetWindowContent() {
-	products := GetProducts()
-	productCheckboxes := make([]*widget.Check, len(products))
-	for i, p := range products {
+	c.products = GetProducts()
+	productCheckboxes := make([]*widget.Check, len(c.products))
+	for i, p := range c.products {
 		productCheckboxes[i] = widget.NewCheck(p.Name, nil)
 	}
 
@@ -48,7 +49,7 @@ func (c *CheckoutPage) SetWindowContent() {
 		var productsOrder []Product
 		for i, checkbox := range productCheckboxes {
 			if checkbox.Checked {
-				productsOrder = append(productsOrder, products[i])
+				productsOrder = append(productsOrder, c.products[i])
 			}
 		}
 
@@ -73,7 +74,6 @@ func (c *CheckoutPage) SetWindowContent() {
 		)
 
 		c.OrdersList.Add(item)
-
 	})
 
 	findEntry := widget.NewEntry()
@@ -130,4 +130,31 @@ func checkId(id *uint64) {
 			checkId(id)
 		}
 	}
+}
+
+func (c *CheckoutPage) NewPostponedOrder(productsOrder []Product) {
+	order := Order{Id: GenerateIdOrderList(), Products: productsOrder}
+
+	c.callbackAddOrder(order)
+
+	var item *fyne.Container
+
+	numberLabel := widget.NewLabel(strconv.FormatUint(order.Id, 10))
+	statusLabel := widget.NewLabel("worked")
+	btnGive := widget.NewButton("Give", func() {
+		c.callbackGive(order.Id)
+		c.OrdersList.Remove(item)
+	})
+
+	item = container.New(
+		layout.NewHBoxLayout(),
+		numberLabel,
+		statusLabel,
+		btnGive,
+	)
+
+	// ToDo: posponed order
+
+	c.OrdersList.Add(item)
+	c.Window().Content().Refresh()
 }
