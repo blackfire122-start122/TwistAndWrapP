@@ -10,7 +10,7 @@ func RunApp() {
 	App = app.New()
 	MainWindow := App.NewWindow("Login Page")
 
-	FirstCallLoginPage(MainWindow)
+	LoginPage(MainWindow)
 
 	MainWindow.ShowAndRun()
 }

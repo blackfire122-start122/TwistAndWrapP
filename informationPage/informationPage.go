@@ -11,12 +11,11 @@ import (
 
 var ListInformationPage []*InformationPage
 
-func NewInformationPage(w fyne.Window) Page {
+func NewInformationPage(w fyne.Window) {
 	page := &InformationPage{WindowPage: w}
 	page.SetWindowContent()
 	ListInformationPage = append(ListInformationPage, page)
 	w.Show()
-	return page
 }
 
 type InformationPage struct {

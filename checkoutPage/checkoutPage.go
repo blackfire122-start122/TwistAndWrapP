@@ -1,9 +1,7 @@
 package checkoutPage
 
 import (
-	. "TwistAndWrapP/informationPage"
 	. "TwistAndWrapP/pkg"
-	. "TwistAndWrapP/workedPage"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
@@ -14,17 +12,18 @@ import (
 
 var ListCheckoutPage []*CheckoutPage
 
-func NewCheckoutPage(w fyne.Window) Page {
-	page := &CheckoutPage{WindowPage: w}
+func NewCheckoutPage(w fyne.Window, callbackAddOrder func(order Order), callbackGive func(Id uint64)) {
+	page := &CheckoutPage{WindowPage: w, callbackAddOrder: callbackAddOrder, callbackGive: callbackGive}
 	page.SetWindowContent()
 	ListCheckoutPage = append(ListCheckoutPage, page)
 	w.Show()
-	return page
 }
 
 type CheckoutPage struct {
-	OrdersList *fyne.Container
-	WindowPage fyne.Window
+	OrdersList       *fyne.Container
+	WindowPage       fyne.Window
+	callbackAddOrder func(order Order)
+	callbackGive     func(Id uint64)
 }
 
 func (c *CheckoutPage) Window() fyne.Window {
@@ -32,27 +31,6 @@ func (c *CheckoutPage) Window() fyne.Window {
 }
 
 func (c *CheckoutPage) SetWindowContent() {
-	go func() {
-		for {
-			for _, page := range ListInformationPage {
-				for _, order := range page.ListOrders.Objects {
-					if cont, ok := order.(*fyne.Container); ok {
-						if statusLabel, ok := cont.Objects[1].(*widget.Label); ok {
-							if statusLabel.Text == "Complete" {
-								if numberLabel, ok := cont.Objects[0].(*widget.Label); ok {
-									if number, err := strconv.ParseUint(numberLabel.Text, 10, 64); err == nil {
-										c.SetStatusCompleteOrder(number)
-										c.Window().Content().Refresh()
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}()
-
 	products := GetProducts()
 	productCheckboxes := make([]*widget.Check, len(products))
 	for i, p := range products {
@@ -76,25 +54,14 @@ func (c *CheckoutPage) SetWindowContent() {
 
 		order := Order{Id: GenerateIdOrderList(), Products: productsOrder}
 
-		for _, page := range ListWorkedPage {
-			page.AddOrder(order)
-			page.Window().Content().Refresh()
-		}
-
-		for _, page := range ListInformationPage {
-			page.AddOrder(order)
-			page.Window().Content().Refresh()
-		}
+		c.callbackAddOrder(order)
 
 		var item *fyne.Container
 
 		numberLabel := widget.NewLabel(strconv.FormatUint(order.Id, 10))
 		statusLabel := widget.NewLabel("worked")
 		btnGive := widget.NewButton("Give", func() {
-			for _, page := range ListInformationPage {
-				page.DeleteOrder(order.Id)
-				page.Window().Content().Refresh()
-			}
+			c.callbackGive(order.Id)
 			c.OrdersList.Remove(item)
 		})
 

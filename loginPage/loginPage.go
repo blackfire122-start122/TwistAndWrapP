@@ -14,9 +14,7 @@ import (
 	"net/http/cookiejar"
 )
 
-func FirstCallLoginPage(MainWindow fyne.Window) {
-	LoginPage = FirstCallLoginPage
-
+func LoginPage(MainWindow fyne.Window) {
 	Client = &http.Client{}
 
 	jar, err := cookiejar.New(nil)
@@ -27,6 +25,8 @@ func FirstCallLoginPage(MainWindow fyne.Window) {
 	Client = &http.Client{
 		Jar: jar,
 	}
+
+	//ConnectToWebsocketServer()
 
 	idEntry := widget.NewEntry()
 	passEntry := widget.NewPasswordEntry()
@@ -78,7 +78,7 @@ func FirstCallLoginPage(MainWindow fyne.Window) {
 
 		if data.Login == "OK" {
 			GetAndSetAllData()
-			SettingPage(MainWindow)
+			SettingPage(MainWindow, LoginPage)
 		} else {
 			errorLabel.Show()
 		}

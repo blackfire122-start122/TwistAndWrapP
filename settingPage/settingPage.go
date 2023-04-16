@@ -13,7 +13,7 @@ import (
 	"strconv"
 )
 
-func SettingPage(MainWindow fyne.Window) {
+func SettingPage(MainWindow fyne.Window, LoginPage func(MainWindow fyne.Window)) {
 	numberInfoEntry := NewNumericalEntry()
 	numberInfoEntry.SetPlaceHolder("Number of information pages")
 
@@ -64,9 +64,39 @@ func SettingPage(MainWindow fyne.Window) {
 				ListInformationPage = []*InformationPage{}
 				ListCheckoutPage = []*CheckoutPage{}
 
-				CreateWindows(numberInfoEntry, "Information Page", NewInformationPage)
-				CreateWindows(numberCheckoutEntry, "Checkout Page", NewCheckoutPage)
-				CreateWindows(numberWorkEntry, "Worked Page", NewWorkedPage)
+				CreateWindows(numberInfoEntry, "Information Page", func(w fyne.Window) {
+					NewInformationPage(w)
+				})
+				CreateWindows(numberCheckoutEntry, "Checkout Page", func(w fyne.Window) {
+					NewCheckoutPage(w, func(order Order) {
+						for _, page := range ListWorkedPage {
+							page.AddOrder(order)
+							page.Window().Content().Refresh()
+						}
+
+						for _, page := range ListInformationPage {
+							page.AddOrder(order)
+							page.Window().Content().Refresh()
+						}
+					}, func(Id uint64) {
+						for _, page := range ListInformationPage {
+							page.DeleteOrder(Id)
+							page.Window().Content().Refresh()
+						}
+					})
+				})
+				CreateWindows(numberWorkEntry, "Worked Page", func(w fyne.Window) {
+					NewWorkedPage(w, func(Id uint64) {
+						for _, page := range ListInformationPage {
+							page.SetStatusCompleteOrder(Id)
+							page.Window().Content().Refresh()
+						}
+						for _, page := range ListCheckoutPage {
+							page.SetStatusCompleteOrder(Id)
+							page.Window().Content().Refresh()
+						}
+					})
+				})
 			}),
 		),
 	)
@@ -74,7 +104,7 @@ func SettingPage(MainWindow fyne.Window) {
 	MainWindow.SetContent(newContent)
 }
 
-func CreateWindows(entry *NumericalEntry, title string, funcCreatePage func(w fyne.Window) Page) {
+func CreateWindows(entry *NumericalEntry, title string, funcCreatePage func(w fyne.Window)) {
 	var entryValue int64
 	entryValue, _ = strconv.ParseInt(entry.Text, 10, 64)
 

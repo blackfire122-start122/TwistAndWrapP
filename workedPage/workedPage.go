@@ -1,7 +1,6 @@
 package workedPage
 
 import (
-	. "TwistAndWrapP/informationPage"
 	. "TwistAndWrapP/pkg"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
@@ -12,17 +11,17 @@ import (
 
 var ListWorkedPage []*WorkedPage
 
-func NewWorkedPage(w fyne.Window) Page {
-	page := &WorkedPage{WindowPage: w}
+func NewWorkedPage(w fyne.Window, callbackComplete func(Id uint64)) {
+	page := &WorkedPage{WindowPage: w, callbackComplete: callbackComplete}
 	page.SetWindowContent()
 	ListWorkedPage = append(ListWorkedPage, page)
 	w.Show()
-	return page
 }
 
 type WorkedPage struct {
-	ListWork   *fyne.Container
-	WindowPage fyne.Window
+	ListWork         *fyne.Container
+	WindowPage       fyne.Window
+	callbackComplete func(Id uint64)
 }
 
 func (w *WorkedPage) Window() fyne.Window {
@@ -79,10 +78,7 @@ func (w *WorkedPage) CreateOrderItem(o Order) *fyne.Container {
 
 	selectList := widget.NewSelect(statuses, func(s string) {
 		if s == "end" {
-			for _, page := range ListInformationPage {
-				page.SetStatusCompleteOrder(o.Id)
-				page.Window().Content().Refresh()
-			}
+			w.callbackComplete(o.Id)
 			w.ListWork.Remove(item)
 		}
 		for _, page := range ListWorkedPage {
