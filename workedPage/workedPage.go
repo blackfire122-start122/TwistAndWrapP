@@ -69,7 +69,7 @@ func (w *WorkedPage) CreateOrderItem(o Order) *fyne.Container {
 	var item *fyne.Container
 
 	for _, product := range o.Products {
-		productNameList = append(productNameList, product.Name)
+		productNameList = append(productNameList, product.Product.Name+": "+strconv.FormatUint(uint64(product.Count), 10))
 	}
 
 	dropdownCheckList := w.createDropdownCheckList(productNameList)

@@ -14,7 +14,13 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"strconv"
+	"time"
 )
+
+type MsgCreateOrder struct {
+	FoodIdCount map[uint64]uint8
+	Time        string
+}
 
 func LoginPage(MainWindow fyne.Window) {
 	Client = &http.Client{}
@@ -79,8 +85,8 @@ func LoginPage(MainWindow fyne.Window) {
 		if data.Login == "OK" {
 			for _, cookie := range resp.Cookies() {
 				ConnectToWebsocketServer(cookie, func(message Message) error {
-					var productsOrder []Product
-					var msgProductsId map[uint64]int64
+					var productsOrder []ProductOrder
+					var msgProductsId MsgCreateOrder
 
 					if err := json.Unmarshal([]byte(message.Msg), &msgProductsId); err != nil {
 						fmt.Println(err)
@@ -94,17 +100,34 @@ func LoginPage(MainWindow fyne.Window) {
 							return err
 						}
 
-						for id, count := range msgProductsId {
-							fmt.Println(count)
+						for id, count := range msgProductsId.FoodIdCount {
 							if pId == id {
-								productsOrder = append(productsOrder, product)
+								productsOrder = append(productsOrder, ProductOrder{Product: product, Count: count})
 							}
 						}
 					}
+					t, err := time.Parse("15:04", msgProductsId.Time)
 
-					for _, page := range ListCheckoutPage {
-						page.NewPostponedOrder(productsOrder)
+					if err != nil {
+						fmt.Println("Error parsing time string:", err)
+						return err
 					}
+
+					go func() {
+						now := time.Now()
+						targetTime := time.Date(now.Year(), now.Month(), now.Day(), t.Hour(), t.Minute(), 0, 0, now.Location())
+						duration := targetTime.Sub(now)
+
+						timer := time.NewTimer(duration)
+
+						<-timer.C
+
+						for _, page := range ListCheckoutPage {
+							page.AddOrder(productsOrder)
+							page.Window().Content().Refresh()
+						}
+					}()
+
 					return nil
 				})
 				break

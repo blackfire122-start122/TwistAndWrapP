@@ -1,7 +1,9 @@
 package checkoutPage
 
 import (
+	. "TwistAndWrapP/entrys"
 	. "TwistAndWrapP/pkg"
+	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
@@ -34,55 +36,61 @@ func (c *CheckoutPage) Window() fyne.Window {
 func (c *CheckoutPage) SetWindowContent() {
 	c.products = GetProducts()
 	productCheckboxes := make([]*widget.Check, len(c.products))
+	productEntries := make([]*NumericalEntry, len(c.products))
 	for i, p := range c.products {
-		productCheckboxes[i] = widget.NewCheck(p.Name, nil)
+		productEntries[i] = NewNumericalEntry()
+		productEntries[i].PlaceHolder = "Count"
+		productEntries[i].Disable()
+
+		checkBoxFunc := func(i int) func(bool) {
+			return func(b bool) {
+				if b {
+					productEntries[i].Enable()
+				} else {
+					productEntries[i].Disable()
+				}
+			}
+		}(i)
+
+		productCheckboxes[i] = widget.NewCheck(p.Name, checkBoxFunc)
 	}
 
 	var items []fyne.CanvasObject
-	for _, c := range productCheckboxes {
-		items = append(items, c)
+	for i := range productCheckboxes {
+		items = append(items, container.NewVBox(productCheckboxes[i], productEntries[i]))
 	}
 
 	c.OrdersList = container.NewHBox()
 
 	btnAdd := widget.NewButton("Add order", func() {
-		var productsOrder []Product
+		var productsOrder []ProductOrder
 		for i, checkbox := range productCheckboxes {
 			if checkbox.Checked {
-				productsOrder = append(productsOrder, c.products[i])
+				count, err := strconv.ParseUint(productEntries[i].Text, 10, 8)
+				if err != nil {
+					fmt.Println(err)
+				}
+				if count <= 0 {
+					count = 1
+				}
+				productsOrder = append(productsOrder, ProductOrder{Product: c.products[i], Count: uint8(count)})
+				checkbox.SetChecked(false)
+				productEntries[i].SetText("")
+				productEntries[i].Disable()
 			}
 		}
-
-		order := Order{Id: GenerateIdOrderList(), Products: productsOrder}
-
-		c.callbackAddOrder(order)
-
-		var item *fyne.Container
-
-		numberLabel := widget.NewLabel(strconv.FormatUint(order.Id, 10))
-		statusLabel := widget.NewLabel("worked")
-		btnGive := widget.NewButton("Give", func() {
-			c.callbackGive(order.Id)
-			c.OrdersList.Remove(item)
-		})
-
-		item = container.New(
-			layout.NewHBoxLayout(),
-			numberLabel,
-			statusLabel,
-			btnGive,
-		)
-
-		c.OrdersList.Add(item)
+		c.AddOrder(productsOrder)
 	})
 
 	findEntry := widget.NewEntry()
 	findEntry.OnChanged = func(s string) {
-		for _, checkbox := range productCheckboxes {
-			if strings.Contains(strings.ToLower(checkbox.Text), strings.ToLower(s)) {
-				checkbox.Show()
+		for i, _ := range productCheckboxes {
+			if strings.Contains(strings.ToLower(productCheckboxes[i].Text), strings.ToLower(s)) {
+				productCheckboxes[i].Show()
+				productEntries[i].Show()
 			} else {
-				checkbox.Hide()
+				productCheckboxes[i].Hide()
+				productEntries[i].Hide()
 			}
 		}
 	}
@@ -98,41 +106,7 @@ func (c *CheckoutPage) SetWindowContent() {
 	c.WindowPage.SetContent(content)
 }
 
-func (c *CheckoutPage) SetStatusCompleteOrder(id uint64) {
-	for _, order := range c.OrdersList.Objects {
-		if cont, ok := order.(*fyne.Container); ok {
-			if numberLabel, ok := cont.Objects[0].(*widget.Label); ok {
-				if number, err := strconv.ParseUint(numberLabel.Text, 10, 64); err == nil && number == id {
-					if statusLabel, ok := cont.Objects[1].(*widget.Label); ok {
-						statusLabel.SetText("Complete")
-						break
-					}
-				}
-			}
-		}
-	}
-}
-
-// GenerateIdOrderList ToDo: Need optimize
-func GenerateIdOrderList() uint64 {
-	var id uint64 = 0
-	checkId(&id)
-
-	OrderListId = append(OrderListId, id)
-
-	return id
-}
-
-func checkId(id *uint64) {
-	for _, val := range OrderListId {
-		if val == *id {
-			*id += 1
-			checkId(id)
-		}
-	}
-}
-
-func (c *CheckoutPage) NewPostponedOrder(productsOrder []Product) {
+func (c *CheckoutPage) AddOrder(productsOrder []ProductOrder) {
 	order := Order{Id: GenerateIdOrderList(), Products: productsOrder}
 
 	c.callbackAddOrder(order)
@@ -146,6 +120,8 @@ func (c *CheckoutPage) NewPostponedOrder(productsOrder []Product) {
 		c.OrdersList.Remove(item)
 	})
 
+	btnGive.Disable()
+
 	item = container.New(
 		layout.NewHBoxLayout(),
 		numberLabel,
@@ -153,8 +129,41 @@ func (c *CheckoutPage) NewPostponedOrder(productsOrder []Product) {
 		btnGive,
 	)
 
-	// ToDo: posponed order
-
 	c.OrdersList.Add(item)
-	c.Window().Content().Refresh()
+}
+
+func (c *CheckoutPage) SetStatusCompleteOrder(id uint64) {
+	for _, order := range c.OrdersList.Objects {
+		if cont, ok := order.(*fyne.Container); ok {
+			if numberLabel, ok := cont.Objects[0].(*widget.Label); ok {
+				if number, err := strconv.ParseUint(numberLabel.Text, 10, 64); err == nil && number == id {
+					if statusLabel, ok := cont.Objects[1].(*widget.Label); ok {
+						if btnGive, ok := cont.Objects[2].(*widget.Button); ok {
+							statusLabel.SetText("Complete")
+							btnGive.Enable()
+							break
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+func GenerateIdOrderList() uint64 {
+	var id uint64 = 0
+	for contains(OrderListId, id) {
+		id++
+	}
+	OrderListId = append(OrderListId, id)
+	return id
+}
+
+func contains(slice []uint64, item uint64) bool {
+	for _, val := range slice {
+		if val == item {
+			return true
+		}
+	}
+	return false
 }

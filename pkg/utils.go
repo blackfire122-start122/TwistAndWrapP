@@ -22,9 +22,14 @@ type Product struct {
 	Name  string `json:"Name"`
 }
 
+type ProductOrder struct {
+	Product Product
+	Count   uint8
+}
+
 type Order struct {
 	Id       uint64
-	Products []Product
+	Products []ProductOrder
 }
 
 func GetProducts() []Product {
