@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	"net/http"
+	"strconv"
 )
 
 var Conn *websocket.Conn
@@ -14,7 +15,7 @@ type Message struct {
 	Msg  string
 }
 
-func receiver(callBackOnCreateOrder func(message Message) error) {
+func receiver(callBackOnCreateOrder func(message Message) (uint64, error)) {
 	for {
 		_, p, err := Conn.ReadMessage()
 		if err != nil {
@@ -41,22 +42,22 @@ func receiver(callBackOnCreateOrder func(message Message) error) {
 
 		switch m.Type {
 		case "createOrder":
-			if err := callBackOnCreateOrder(m); err != nil {
+			if id, err := callBackOnCreateOrder(m); err != nil {
 				err = Conn.WriteJSON(Message{Type: "createOrder", Msg: "Error"})
 				if err != nil {
 					fmt.Println("write error:", err)
 				}
-			}
-
-			err = Conn.WriteJSON(Message{Type: "createOrder", Msg: "Created"})
-			if err != nil {
-				fmt.Println("write error:", err)
+			} else {
+				err = Conn.WriteJSON(Message{Type: "createOrder", Msg: "Created:" + strconv.FormatUint(id, 10)})
+				if err != nil {
+					fmt.Println("write error:", err)
+				}
 			}
 		}
 	}
 }
 
-func ConnectToWebsocketServer(cookie *http.Cookie, callBackOnCreateOrder func(message Message) error) {
+func ConnectToWebsocketServer(cookie *http.Cookie, callBackOnCreateOrder func(message Message) (uint64, error)) {
 	req, err := http.NewRequest("GET", "ws://localhost:8080/wsChat?roomId=bar", nil)
 
 	if err != nil {

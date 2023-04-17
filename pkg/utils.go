@@ -41,3 +41,21 @@ func GetProducts() []Product {
 	}
 	return products
 }
+
+func GenerateIdOrderList() uint64 {
+	var id uint64 = 0
+	for contains(OrderListId, id) {
+		id++
+	}
+	OrderListId = append(OrderListId, id)
+	return id
+}
+
+func contains(slice []uint64, item uint64) bool {
+	for _, val := range slice {
+		if val == item {
+			return true
+		}
+	}
+	return false
+}

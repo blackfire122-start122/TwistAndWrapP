@@ -79,7 +79,7 @@ func (c *CheckoutPage) SetWindowContent() {
 				productEntries[i].Disable()
 			}
 		}
-		c.AddOrder(productsOrder)
+		c.AddOrder(productsOrder, GenerateIdOrderList())
 	})
 
 	findEntry := widget.NewEntry()
@@ -106,8 +106,8 @@ func (c *CheckoutPage) SetWindowContent() {
 	c.WindowPage.SetContent(content)
 }
 
-func (c *CheckoutPage) AddOrder(productsOrder []ProductOrder) {
-	order := Order{Id: GenerateIdOrderList(), Products: productsOrder}
+func (c *CheckoutPage) AddOrder(productsOrder []ProductOrder, Id uint64) {
+	order := Order{Id: Id, Products: productsOrder}
 
 	c.callbackAddOrder(order)
 
@@ -148,22 +148,4 @@ func (c *CheckoutPage) SetStatusCompleteOrder(id uint64) {
 			}
 		}
 	}
-}
-
-func GenerateIdOrderList() uint64 {
-	var id uint64 = 0
-	for contains(OrderListId, id) {
-		id++
-	}
-	OrderListId = append(OrderListId, id)
-	return id
-}
-
-func contains(slice []uint64, item uint64) bool {
-	for _, val := range slice {
-		if val == item {
-			return true
-		}
-	}
-	return false
 }
