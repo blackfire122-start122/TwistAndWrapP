@@ -109,6 +109,6 @@ func CreateWindows(entry *NumericalEntry, title string, funcCreatePage func(w fy
 	entryValue, _ = strconv.ParseInt(entry.Text, 10, 64)
 
 	for i := int64(0); i < entryValue; i++ {
-		funcCreatePage(App.NewWindow(title))
+		funcCreatePage(fyne.CurrentApp().NewWindow(title))
 	}
 }

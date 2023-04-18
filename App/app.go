@@ -2,12 +2,12 @@ package App
 
 import (
 	. "TwistAndWrapP/loginPage"
-	. "TwistAndWrapP/pkg"
+	. "TwistAndWrapP/settingPage"
 	"fyne.io/fyne/v2/app"
 )
 
 func RunApp() {
-	App = app.New()
+	App := app.New()
 	MainWindow := App.NewWindow("Login Page")
 
 	LoginPage(MainWindow)

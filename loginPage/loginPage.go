@@ -36,7 +36,7 @@ func LoginPage(MainWindow fyne.Window) {
 
 	idEntry := widget.NewEntry()
 	passEntry := widget.NewPasswordEntry()
-	errorLabel := widget.NewLabel("Error data")
+	errorLabel := widget.NewLabel("")
 
 	submitButton := widget.NewButton("Submit", func() {
 		type LoginResponse struct {
@@ -83,8 +83,9 @@ func LoginPage(MainWindow fyne.Window) {
 		}
 
 		if data.Login == "OK" {
+			IdBar = idEntry.Text
 			for _, cookie := range resp.Cookies() {
-				ConnectToWebsocketServer(cookie, func(message Message) (uint64, error) {
+				err := ConnectToWebsocketServer(cookie, func(message Message) (uint64, error) {
 					var productsOrder []ProductOrder
 					var msgProductsId MsgCreateOrder
 
@@ -132,11 +133,16 @@ func LoginPage(MainWindow fyne.Window) {
 
 					return OrderId, err
 				})
+				if err != nil {
+					errorLabel.SetText("Error connect to websocket")
+					errorLabel.Show()
+				}
 				break
 			}
 			GetAndSetAllData()
 			SettingPage(MainWindow, LoginPage)
 		} else {
+			errorLabel.SetText("Error data")
 			errorLabel.Show()
 		}
 	})

@@ -1,7 +1,6 @@
 package pkg
 
 import (
-	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/widget"
 	"net/http"
 )
@@ -12,9 +11,9 @@ var CheckListProducts []*widget.Check
 
 var OrderListId []uint64
 
-var App fyne.App
-
 var Client *http.Client
+
+var IdBar string
 
 type Product struct {
 	Id    string `json:"Id"`

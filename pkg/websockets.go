@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/websocket"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 var Conn *websocket.Conn
@@ -15,7 +16,7 @@ type Message struct {
 	Msg  string
 }
 
-func receiver(callBackOnCreateOrder func(message Message) (uint64, error)) {
+func receiver(cookie *http.Cookie, callBackOnCreateOrder func(message Message) (uint64, error)) {
 	for {
 		_, p, err := Conn.ReadMessage()
 		if err != nil {
@@ -25,7 +26,13 @@ func receiver(callBackOnCreateOrder func(message Message) (uint64, error)) {
 				return
 			}
 			fmt.Println("err read message")
-			return
+			for {
+				time.Sleep(2 * time.Second)
+				if err := ConnectToWebsocketServer(cookie, callBackOnCreateOrder); err == nil {
+					fmt.Println(err)
+					return
+				}
+			}
 		}
 
 		var m Message
@@ -57,19 +64,22 @@ func receiver(callBackOnCreateOrder func(message Message) (uint64, error)) {
 	}
 }
 
-func ConnectToWebsocketServer(cookie *http.Cookie, callBackOnCreateOrder func(message Message) (uint64, error)) {
-	req, err := http.NewRequest("GET", "ws://localhost:8080/wsChat?roomId=bar", nil)
+func ConnectToWebsocketServer(cookie *http.Cookie, callBackOnCreateOrder func(message Message) (uint64, error)) error {
+	req, err := http.NewRequest("GET", "ws://localhost:8080/wsChat?roomId="+IdBar, nil)
 
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		return err
 	}
 	req.AddCookie(cookie)
 
 	conn, _, err := websocket.DefaultDialer.Dial(req.URL.String(), req.Header)
 	if err != nil {
 		fmt.Println("websocket dial error: ", err)
+		return err
 	}
 
 	Conn = conn
-	go receiver(callBackOnCreateOrder)
+	go receiver(cookie, callBackOnCreateOrder)
+	return nil
 }
