@@ -48,7 +48,7 @@ func LoginPage(MainWindow fyne.Window) {
 			Password string
 		}
 
-		url := "http://localhost:8080/loginBar"
+		url := "http://localhost/api/bar/loginBar"
 		loginData := LoginRequest{
 			IdBar:    idEntry.Text,
 			Password: passEntry.Text,
@@ -162,7 +162,7 @@ func LoginPage(MainWindow fyne.Window) {
 }
 
 func GetAndSetAllData() {
-	GetJson("http://localhost:8080/getAllProducts", &ProductList)
+	GetJson("http://localhost/api/bar/getAllProducts", &ProductList)
 }
 
 func GetJson(url string, target any) {

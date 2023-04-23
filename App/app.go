@@ -2,7 +2,6 @@ package App
 
 import (
 	. "TwistAndWrapP/loginPage"
-	. "TwistAndWrapP/settingPage"
 	"fyne.io/fyne/v2/app"
 )
 

@@ -65,7 +65,7 @@ func receiver(cookie *http.Cookie, callBackOnCreateOrder func(message Message) (
 }
 
 func ConnectToWebsocketServer(cookie *http.Cookie, callBackOnCreateOrder func(message Message) (uint64, error)) error {
-	req, err := http.NewRequest("GET", "ws://localhost:8080/wsChat?roomId="+IdBar, nil)
+	req, err := http.NewRequest("GET", "ws://localhost/websocket/wsChat?roomId="+IdBar, nil)
 
 	if err != nil {
 		fmt.Println(err)
