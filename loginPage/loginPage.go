@@ -38,6 +38,9 @@ func LoginPage(MainWindow fyne.Window) {
 	passEntry := widget.NewPasswordEntry()
 	errorLabel := widget.NewLabel("")
 
+	idEntry.Text = "30612142515346484843285878528805" // ToDo: Default value delete before deploy
+	passEntry.Text = "123456"                         // ToDo: Default value delete before deploy
+
 	submitButton := widget.NewButton("Submit", func() {
 		type LoginResponse struct {
 			Login string
@@ -85,33 +88,37 @@ func LoginPage(MainWindow fyne.Window) {
 		if data.Login == "OK" {
 			IdBar = idEntry.Text
 			for _, cookie := range resp.Cookies() {
-				err := ConnectToWebsocketServer(cookie, func(message Message) (uint64, error) {
+				err := ConnectToWebsocketServer(cookie, func(message Message) (uint64, []uint64, error) {
+					checkedProducts := GetProducts()
 					var productsOrder []ProductOrder
 					var msgProductsId MsgCreateOrder
+					var ProductsCreated []uint64
 
 					if err := json.Unmarshal([]byte(message.Msg), &msgProductsId); err != nil {
 						fmt.Println(err)
-						return 0, err
+						return 0, ProductsCreated, err
 					}
 
-					for _, product := range ProductList {
-						pId, err := strconv.ParseUint(product.Id, 10, 64)
-						if err != nil {
-							fmt.Println(err)
-							return 0, err
-						}
-
-						for id, count := range msgProductsId.FoodIdCount {
+					for id, count := range msgProductsId.FoodIdCount {
+						for _, product := range checkedProducts {
+							pId, err := strconv.ParseUint(product.Id, 10, 64)
+							if err != nil {
+								fmt.Println(err)
+								return 0, ProductsCreated, err
+							}
 							if pId == id {
 								productsOrder = append(productsOrder, ProductOrder{Product: product, Count: count})
+								ProductsCreated = append(ProductsCreated, id)
+								break
 							}
 						}
 					}
+
 					t, err := time.Parse("15:04", msgProductsId.Time)
 
 					if err != nil {
 						fmt.Println("Error parsing time string:", err)
-						return 0, err
+						return 0, ProductsCreated, err
 					}
 
 					OrderId := GenerateIdOrderList()
@@ -131,7 +138,7 @@ func LoginPage(MainWindow fyne.Window) {
 						}
 					}()
 
-					return OrderId, err
+					return OrderId, ProductsCreated, err
 				})
 				if err != nil {
 					errorLabel.SetText("Error connect to websocket")
@@ -185,6 +192,3 @@ func GetJson(url string, target any) {
 		return
 	}
 }
-
-//66775588
-//123456

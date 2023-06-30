@@ -6,6 +6,7 @@ import (
 	. "TwistAndWrapP/informationPage"
 	. "TwistAndWrapP/pkg"
 	. "TwistAndWrapP/workedPage"
+	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
@@ -23,12 +24,17 @@ func SettingPage(MainWindow fyne.Window, LoginPage func(MainWindow fyne.Window))
 	numberWorkEntry := NewNumericalEntry()
 	numberWorkEntry.SetPlaceHolder("Number of worked pages")
 
+	numberInfoEntry.Text = "1"     // ToDo: Default value
+	numberCheckoutEntry.Text = "1" // ToDo: Default value
+	numberWorkEntry.Text = "1"     // ToDo: Default value
+
 	for _, product := range ProductList {
 		CheckListProducts = append(CheckListProducts, widget.NewCheck(product.Name, func(bool) {}))
 	}
 
 	var items []fyne.CanvasObject
 	for _, c := range CheckListProducts {
+		c.Checked = true // ToDo: Default value
 		items = append(items, c)
 	}
 	productLabel := widget.NewLabel("Select products what yours have: ")
@@ -45,6 +51,10 @@ func SettingPage(MainWindow fyne.Window, LoginPage func(MainWindow fyne.Window))
 
 		container.New(layout.NewHBoxLayout(),
 			widget.NewButton("Logout", func() {
+				err := Conn.Close()
+				if err != nil {
+					fmt.Println(err)
+				}
 				LoginPage(MainWindow)
 			}),
 			widget.NewButton("Apply", func() {
