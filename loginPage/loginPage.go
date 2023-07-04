@@ -14,7 +14,6 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"strconv"
-	"time"
 )
 
 type MsgCreateOrder struct {
@@ -114,29 +113,29 @@ func LoginPage(MainWindow fyne.Window) {
 						}
 					}
 
-					t, err := time.Parse("15:04", msgProductsId.Time)
+					//t, err := time.Parse("15:04", msgProductsId.Time)
 
-					if err != nil {
-						fmt.Println("Error parsing time string:", err)
-						return 0, ProductsCreated, err
-					}
+					//if err != nil {
+					//	fmt.Println("Error parsing time string:", err)
+					//	return 0, ProductsCreated, err
+					//}
 
 					OrderId := GenerateIdOrderList()
+					//
+					//go func() {
+					//	now := time.Now()
+					//	targetTime := time.Date(now.Year(), now.Month(), now.Day(), t.Hour(), t.Minute()-3, 0, 0, now.Location())
+					//	duration := targetTime.Sub(now)
+					//
+					//	timer := time.NewTimer(duration)
+					//
+					//	<-timer.C
 
-					go func() {
-						now := time.Now()
-						targetTime := time.Date(now.Year(), now.Month(), now.Day(), t.Hour(), t.Minute()-3, 0, 0, now.Location())
-						duration := targetTime.Sub(now)
-
-						timer := time.NewTimer(duration)
-
-						<-timer.C
-
-						for _, page := range ListCheckoutPage {
-							page.AddOrder(productsOrder, OrderId)
-							page.Window().Content().Refresh()
-						}
-					}()
+					for _, page := range ListCheckoutPage {
+						page.AddOrder(productsOrder, OrderId)
+						page.Window().Content().Refresh()
+					}
+					//}()
 
 					return OrderId, ProductsCreated, err
 				})

@@ -116,7 +116,7 @@ func pingPong(conn *websocket.Conn, cookie *http.Cookie, callBackOnCreateOrder f
 			if err := ConnectToWebsocketServer(cookie, callBackOnCreateOrder); err != nil {
 				fmt.Println("error reconnect ", err)
 			}
-			break
+			return
 		}
 	}
 }

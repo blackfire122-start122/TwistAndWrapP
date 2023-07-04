@@ -90,6 +90,10 @@ func SettingPage(MainWindow fyne.Window, LoginPage func(MainWindow fyne.Window))
 						}
 					}, func(Id uint64) {
 						for _, page := range ListInformationPage {
+							err := Conn.WriteJSON(RespMessage{Type: "OrderGive", Msg: "Give", Id: Id})
+							if err != nil {
+								fmt.Println("write error:", err)
+							}
 							page.DeleteOrder(Id)
 							page.Window().Content().Refresh()
 						}
