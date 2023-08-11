@@ -6,6 +6,7 @@ import (
 	. "TwistAndWrapP/informationPage"
 	. "TwistAndWrapP/pkg"
 	. "TwistAndWrapP/workedPage"
+	"encoding/json"
 	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
@@ -90,7 +91,13 @@ func SettingPage(MainWindow fyne.Window, LoginPage func(MainWindow fyne.Window))
 						}
 					}, func(Id uint64) {
 						for _, page := range ListInformationPage {
-							err := Conn.WriteJSON(RespMessage{Type: "OrderGive", Msg: "Give", Id: Id})
+							data, err := json.Marshal(OrderGiveMessage{Id: Id})
+
+							if err != nil {
+								fmt.Println("marshal error: ", err)
+							}
+
+							err = Conn.WriteJSON(Message{Type: "OrderGive", Data: data})
 							if err != nil {
 								fmt.Println("write error:", err)
 							}

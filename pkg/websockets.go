@@ -12,14 +12,21 @@ var Conn *websocket.Conn
 
 type Message struct {
 	Type string
-	Msg  string
+	Data json.RawMessage `json:"Data"`
 }
 
-type RespMessage struct {
-	Type            string
-	Id              uint64
-	ProductsCreated []uint64
-	Msg             string
+type CreatedOrderMessage struct {
+	ProductsCreated []uint64 `json:"ProductsCreated"`
+	Id              uint64   `json:"Id"`
+}
+
+type OrderGiveMessage struct {
+	Id uint64 `json:"Id"`
+}
+
+type CreateOrderMessage struct {
+	FoodIdCount map[uint64]uint8
+	Time        string
 }
 
 func receiver(conn *websocket.Conn, cookie *http.Cookie, callBackOnCreateOrder func(message Message) (uint64, []uint64, error)) {
@@ -50,7 +57,7 @@ func receiver(conn *websocket.Conn, cookie *http.Cookie, callBackOnCreateOrder f
 		err = json.Unmarshal(p, &m)
 
 		if err != nil {
-			err = conn.WriteJSON(Message{Type: "", Msg: "Error"})
+			err = conn.WriteJSON(Message{Type: "Error"})
 			if err != nil {
 				fmt.Println("write error:", err)
 			}
@@ -61,12 +68,18 @@ func receiver(conn *websocket.Conn, cookie *http.Cookie, callBackOnCreateOrder f
 		switch m.Type {
 		case "createOrder":
 			if id, ProductsCreated, err := callBackOnCreateOrder(m); err != nil {
-				err = conn.WriteJSON(RespMessage{Type: "OrderCreated", Msg: "Error"})
+				err = conn.WriteJSON(Message{Type: "Error"})
 				if err != nil {
 					fmt.Println("write error:", err)
 				}
 			} else {
-				err = conn.WriteJSON(RespMessage{Type: "OrderCreated", Id: id, ProductsCreated: ProductsCreated, Msg: "Created"})
+				data, err := json.Marshal(CreatedOrderMessage{Id: id, ProductsCreated: ProductsCreated})
+
+				if err != nil {
+					fmt.Println("marshal error: ", err)
+				}
+
+				err = conn.WriteJSON(Message{Type: "OrderCreated", Data: data})
 				if err != nil {
 					fmt.Println("write error:", err)
 				}
@@ -76,7 +89,7 @@ func receiver(conn *websocket.Conn, cookie *http.Cookie, callBackOnCreateOrder f
 }
 
 func ConnectToWebsocketServer(cookie *http.Cookie, callBackOnCreateOrder func(message Message) (uint64, []uint64, error)) error {
-	req, err := http.NewRequest("GET", "ws://localhost/websocket/wsChat?roomId="+IdBar, nil)
+	req, err := http.NewRequest("GET", "ws://"+Host+"/websocket/wsChat?roomId="+IdBar, nil)
 
 	if err != nil {
 		fmt.Println(err)

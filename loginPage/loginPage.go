@@ -14,12 +14,8 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"strconv"
+	"time"
 )
-
-type MsgCreateOrder struct {
-	FoodIdCount map[uint64]uint8
-	Time        string
-}
 
 func LoginPage(MainWindow fyne.Window) {
 	Client = &http.Client{}
@@ -50,7 +46,7 @@ func LoginPage(MainWindow fyne.Window) {
 			Password string
 		}
 
-		url := "http://localhost/api/bar/loginBar"
+		url := "http://" + Host + "/api/bar/loginBar"
 		loginData := LoginRequest{
 			IdBar:    idEntry.Text,
 			Password: passEntry.Text,
@@ -90,10 +86,10 @@ func LoginPage(MainWindow fyne.Window) {
 				err := ConnectToWebsocketServer(cookie, func(message Message) (uint64, []uint64, error) {
 					checkedProducts := GetProducts()
 					var productsOrder []ProductOrder
-					var msgProductsId MsgCreateOrder
+					var msgProductsId CreateOrderMessage
 					var ProductsCreated []uint64
 
-					if err := json.Unmarshal([]byte(message.Msg), &msgProductsId); err != nil {
+					if err := json.Unmarshal(message.Data, &msgProductsId); err != nil {
 						fmt.Println(err)
 						return 0, ProductsCreated, err
 					}
@@ -113,29 +109,29 @@ func LoginPage(MainWindow fyne.Window) {
 						}
 					}
 
-					//t, err := time.Parse("15:04", msgProductsId.Time)
+					t, err := time.Parse("15:04", msgProductsId.Time)
 
-					//if err != nil {
-					//	fmt.Println("Error parsing time string:", err)
-					//	return 0, ProductsCreated, err
-					//}
+					if err != nil {
+						fmt.Println("Error parsing time string:", err)
+						return 0, ProductsCreated, err
+					}
 
 					OrderId := GenerateIdOrderList()
-					//
-					//go func() {
-					//	now := time.Now()
-					//	targetTime := time.Date(now.Year(), now.Month(), now.Day(), t.Hour(), t.Minute()-3, 0, 0, now.Location())
-					//	duration := targetTime.Sub(now)
-					//
-					//	timer := time.NewTimer(duration)
-					//
-					//	<-timer.C
 
-					for _, page := range ListCheckoutPage {
-						page.AddOrder(productsOrder, OrderId)
-						page.Window().Content().Refresh()
-					}
-					//}()
+					go func() {
+						now := time.Now()
+						targetTime := time.Date(now.Year(), now.Month(), now.Day(), t.Hour(), t.Minute()-3, 0, 0, now.Location())
+						duration := targetTime.Sub(now)
+
+						timer := time.NewTimer(duration)
+
+						<-timer.C
+
+						for _, page := range ListCheckoutPage {
+							page.AddOrder(productsOrder, OrderId)
+							page.Window().Content().Refresh()
+						}
+					}()
 
 					return OrderId, ProductsCreated, err
 				})
@@ -168,7 +164,7 @@ func LoginPage(MainWindow fyne.Window) {
 }
 
 func GetAndSetAllData() {
-	GetJson("http://localhost/api/bar/getAllProducts", &ProductList)
+	GetJson("http://"+Host+"/api/bar/getAllProducts", &ProductList)
 }
 
 func GetJson(url string, target any) {

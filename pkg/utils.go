@@ -15,6 +15,8 @@ var Client *http.Client
 
 var IdBar string
 
+var Host = "localhost"
+
 type Product struct {
 	Id    string `json:"Id"`
 	Image string `json:"Image"`
