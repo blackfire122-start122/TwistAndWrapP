@@ -33,8 +33,8 @@ func LoginPage(MainWindow fyne.Window) {
 	passEntry := widget.NewPasswordEntry()
 	errorLabel := widget.NewLabel("")
 
-	idEntry.Text = "30612142515346484843285878528805" // ToDo: Default value delete before deploy
-	passEntry.Text = "123456"                         // ToDo: Default value delete before deploy
+	idEntry.Text = "4984295724031111" // ToDo: Default value delete before deploy
+	passEntry.Text = "123456"         // ToDo: Default value delete before deploy
 
 	submitButton := widget.NewButton("Submit", func() {
 		type LoginResponse struct {
@@ -120,7 +120,7 @@ func LoginPage(MainWindow fyne.Window) {
 
 					go func() {
 						now := time.Now()
-						targetTime := time.Date(now.Year(), now.Month(), now.Day(), t.Hour(), t.Minute()-3, 0, 0, now.Location())
+						targetTime := time.Date(now.Year(), now.Month(), now.Day(), t.Hour(), t.Minute()-9, 0, 0, now.Location())
 						duration := targetTime.Sub(now)
 
 						timer := time.NewTimer(duration)

@@ -65,6 +65,8 @@ func receiver(conn *websocket.Conn, cookie *http.Cookie, callBackOnCreateOrder f
 			break
 		}
 
+		fmt.Println(m)
+
 		switch m.Type {
 		case "createOrder":
 			if id, ProductsCreated, err := callBackOnCreateOrder(m); err != nil {
